@@ -1,0 +1,20 @@
+name: API Linting
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout del código
+        uses: actions/checkout@v3
+
+      - name: Instalar Spectral
+        run: npm install -g @stoplight/spectral-cli
+
+      - name: Ejecutar Linting
+        run: spectral lint api/*.yaml

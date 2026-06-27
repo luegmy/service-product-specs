@@ -1,0 +1,850 @@
+openapi: 3.0.3
+info:
+  title: Catálogo de Productos API
+  description: API de gestión de productos, categorías y marcas con paginación y manejo de errores.
+  version: 1.0.0
+  contact:
+    name: Equipo de Ingeniería Gage
+    url: https://github.com/luegmy/gage-service-product
+
+
+servers:
+  - url: gage-product-service/api/v1
+    variables: {}
+  - url: https://api.ferreteria.com/v1
+    description: Producción
+
+security:
+  - bearerAuth: []
+
+tags:
+  - name: Productos
+    description: Gestión del catálogo de productos
+  - name: Categorías
+    description: Gestión de categorías de productos
+  - name: Marcas
+    description: Gestión de marcas de productos
+
+
+paths:
+  # ─────────────────────────────────────────────
+  # CATEGORÍAS
+  # ─────────────────────────────────────────────
+
+  /categories:
+    get:
+      tags: [Categorías]
+      summary: Listar todas las categorías
+      description: Devuelve todas las categorías existentes en el catálogo, sin paginación.
+      operationId: listCategories
+      responses:
+        '200':
+          description: Lista de categorías
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Category'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    post:
+      tags: [Categorías]
+      summary: Crear una nueva categoría
+      description:
+        Crea una nueva categoría en el catálogo. El nombre debe ser único.
+      operationId: createCategory
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CategoryRequest'
+      responses:
+        '201':
+          description: Categoría creada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Category'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          description: Ya existe una categoría con ese nombre (code CATEGORY_NAME_DUPLICATE)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /categories/{id}:
+    get:
+      tags: [Categorías]
+      summary: Obtener categoría por ID
+      description: Devuelve la categoría correspondiente al ID proporcionado. Retorna 404 si no existe.
+      operationId: getCategoryById
+      parameters:
+        - $ref: '#/components/parameters/PathId'
+      responses:
+        '200':
+          description: Categoría encontrada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Category'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    put:
+      tags: [Categorías]
+      summary: Actualizar categoría
+      description: Actualiza la información de una categoría existente.
+      operationId: updateCategory
+      parameters:
+        - $ref: '#/components/parameters/PathId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CategoryRequest'
+      responses:
+        '200':
+          description: Categoría actualizada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Category'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: Ya existe otra categoría con ese nombre (code CATEGORY_NAME_DUPLICATE)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    delete:
+      tags: [Categorías]
+      summary: Eliminar categoría
+      description: Elimina una categoría existente del catálogo.
+      operationId: deleteCategory
+      parameters:
+        - $ref: '#/components/parameters/PathId'
+      responses:
+        '204':
+          description: Categoría eliminada
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: La categoría tiene productos asociados y no puede eliminarse (code RESOURCE_IN_USE)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  # ─────────────────────────────────────────────
+  # MARCAS
+  # ─────────────────────────────────────────────
+
+  /brands:
+    get:
+      tags: [Marcas]
+      summary: Listar todas las marcas
+      description: Devuelve todas las marcas existentes en el catálogo, sin paginación.
+      operationId: listBrands
+      responses:
+        '200':
+          description: Lista de marcas
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Brand'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    post:
+      tags: [Marcas]
+      summary: Crear una nueva marca
+      description: Crea una nueva marca en el catálogo. El nombre debe ser único.
+      operationId: createBrand
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BrandRequest'
+      responses:
+        '201':
+          description: Marca creada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Brand'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          description: Ya existe una marca con ese nombre (code BRAND_NAME_DUPLICATE)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /brands/{id}:
+    get:
+      tags: [Marcas]
+      summary: Obtener marca por ID
+      description: Devuelve la marca correspondiente al ID proporcionado. Retorna 404 si no existe.
+      operationId: getBrandById
+      parameters:
+        - $ref: '#/components/parameters/PathId'
+      responses:
+        '200':
+          description: Marca encontrada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Brand'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    put:
+      tags: [Marcas]
+      summary: Actualizar marca
+      description: Actualiza la información de una marca existente.
+      operationId: updateBrand
+      parameters:
+        - $ref: '#/components/parameters/PathId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BrandRequest'
+      responses:
+        '200':
+          description: Marca actualizada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Brand'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: Ya existe otra marca con ese nombre (code BRAND_NAME_DUPLICATE)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    delete:
+      tags: [Marcas]
+      summary: Eliminar marca
+      description: Elimina una marca existente del catálogo.
+      operationId: deleteBrand
+      parameters:
+        - $ref: '#/components/parameters/PathId'
+      responses:
+        '204':
+          description: Marca eliminada
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: La marca tiene productos asociados y no puede eliminarse (code RESOURCE_IN_USE)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  # ─────────────────────────────────────────────
+  # PRODUCTOS
+  # ─────────────────────────────────────────────
+
+  /products:
+    get:
+      tags: [Productos]
+      summary: Listar productos con filtros y paginación
+      description:
+        Devuelve una lista paginada de productos, con filtros opcionales por categoría, marca, estado y búsqueda por nombre o SKU.
+      operationId: listProducts
+      x-group-parameters: true
+      parameters:
+        - name: categoryId
+          in: query
+          schema:
+            type: integer
+            format: int64
+        - name: brandId
+          in: query
+          schema:
+            type: integer
+            format: int64
+        - name: search
+          in: query
+          description: Busca por nombre o SKU
+          schema:
+            type: string
+        - name: status
+          in: query
+          schema:
+            $ref: '#/components/schemas/ProductStatus'
+        - $ref: '#/components/parameters/PageNumber'
+        - $ref: '#/components/parameters/PageSize'
+        - $ref: '#/components/parameters/SortBy'
+        - $ref: '#/components/parameters/SortDir'
+      responses:
+        '200':
+          description: Lista paginada de productos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PagedProduct'
+        '400':
+          description: Parámetro de paginación o sortBy inválido (code VALIDATION_ERROR)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    post:
+      tags: [Productos]
+      summary: Crear un nuevo producto
+      description: Crea un nuevo producto en el catálogo. El SKU debe ser único.
+      operationId: createProduct
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProductRequest'
+      responses:
+        '201':
+          description: Producto creado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          description: |
+            La categoría, marca o proveedor referenciados no existen.
+            Ver `code` para distinguir cuál: CATEGORY_NOT_FOUND, BRAND_NOT_FOUND, SUPPLIER_NOT_FOUND.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '409':
+          description: El SKU ya existe en el catálogo (code PRODUCT_SKU_DUPLICATE)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /products/{id}:
+    get:
+      tags: [Productos]
+      summary: Obtener producto por ID
+      description: Devuelve el producto correspondiente al ID proporcionado. Retorna 404 si no existe.
+      operationId: getProductById
+      parameters:
+        - $ref: '#/components/parameters/PathId'
+      responses:
+        '200':
+          description: Producto encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: Producto no encontrado (code PRODUCT_NOT_FOUND)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    put:
+      tags: [Productos]
+      summary: Actualizar producto completo
+      description: Actualiza la información de un producto existente.
+      operationId: updateProduct
+      parameters:
+        - $ref: '#/components/parameters/PathId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProductRequest'
+      responses:
+        '200':
+          description: Producto actualizado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          description: |
+            El producto, categoría, marca o proveedor referenciados no existen.
+            Ver `code`: PRODUCT_NOT_FOUND, CATEGORY_NOT_FOUND, BRAND_NOT_FOUND, SUPPLIER_NOT_FOUND.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '409':
+          description: |
+            Conflicto: el SKU ya existe en otro producto (PRODUCT_SKU_DUPLICATE), o el producto
+            fue modificado por otro usuario desde que se cargó (OPTIMISTIC_LOCK_CONFLICT).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    delete:
+      tags: [Productos]
+      summary: Dar de baja un producto (soft delete)
+      description: Marca un producto como inactivo sin eliminarlo físicamente.
+      operationId: deleteProduct
+      parameters:
+        - $ref: '#/components/parameters/PathId'
+      responses:
+        '204':
+          description: Producto dado de baja
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          description: Producto no encontrado (code PRODUCT_NOT_FOUND)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '409':
+          description: El producto ya estaba inactivo, o tiene ventas/movimientos que impiden su baja (code RESOURCE_IN_USE)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /products/{id}/price:
+    patch:
+      tags: [Productos]
+      summary: Actualizar precio de un producto
+      description: Actualiza el precio de un producto existente
+      operationId: updateProductPrice
+      parameters:
+        - $ref: '#/components/parameters/PathId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PriceUpdateRequest'
+      responses:
+        '200':
+          description: Precio actualizado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          description: Producto no encontrado (code PRODUCT_NOT_FOUND)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+# ─────────────────────────────────────────────
+# COMPONENTS
+# ─────────────────────────────────────────────
+
+components:
+
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  parameters:
+    PathId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: integer
+        format: int64
+
+    PageNumber:
+      name: page
+      in: query
+      schema:
+        type: integer
+        default: 0
+        minimum: 0
+
+    PageSize:
+      name: size
+      in: query
+      schema:
+        type: integer
+        default: 20
+        minimum: 1
+        maximum: 100
+
+    SortBy:
+      name: sortBy
+      in: query
+      schema:
+        type: string
+        default: id
+
+    SortDir:
+      name: sortDir
+      in: query
+      schema:
+        type: string
+        enum: [ASC, DESC]
+        default: DESC
+
+  responses:
+    ValidationError:
+      description: Error de validación de campos de entrada (code VALIDATION_ERROR, ver fieldErrors)
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+    NotFound:
+      description: Recurso no encontrado
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+    Unauthorized:
+      description: Token de autenticación ausente, inválido o expirado (code UNAUTHORIZED)
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+    Forbidden:
+      description: Autenticado pero sin permisos para esta operación (code FORBIDDEN)
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+    InternalServerError:
+      description: Error interno no controlado. No expone detalles de implementación (code INTERNAL_ERROR)
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+
+  schemas:
+
+    # ── ENUMS ──────────────────────────────────
+
+    ProductStatus:
+      type: string
+      enum: [ACTIVE, INACTIVE, DISCONTINUED]
+
+    ApiErrorCode:
+      type: string
+      description: Catálogo cerrado de códigos de error de negocio. Estable entre versiones; el cliente puede tomar decisiones basado en este valor.
+      enum:
+        # Genéricos
+        - VALIDATION_ERROR
+        - UNAUTHORIZED
+        - FORBIDDEN
+        - INTERNAL_ERROR
+        # Catálogo
+        - CATEGORY_NOT_FOUND
+        - CATEGORY_NAME_DUPLICATE
+        - BRAND_NOT_FOUND
+        - BRAND_NAME_DUPLICATE
+        - RESOURCE_IN_USE
+        # Productos
+        - PRODUCT_NOT_FOUND
+        - PRODUCT_SKU_DUPLICATE
+        - OPTIMISTIC_LOCK_CONFLICT
+
+    # ── COMMON ─────────────────────────────────
+
+    ApiError:
+      type: object
+      required: [status, code, message, timestamp]
+      properties:
+        status:
+          type: integer
+          description: Código HTTP, redundante con la respuesta pero útil para logs centralizados
+        code:
+          $ref: '#/components/schemas/ApiErrorCode'
+        message:
+          type: string
+          description: Mensaje legible para mostrar al usuario o loguear. NO usar como clave de lógica en el cliente — usar `code`.
+        timestamp:
+          type: string
+          format: date-time
+        path:
+          type: string
+          description: Endpoint que generó el error, útil para soporte y trazabilidad
+        fieldErrors:
+          type: array
+          description: Presente únicamente cuando code = VALIDATION_ERROR o INSUFFICIENT_STOCK (uno por ítem afectado)
+          items:
+            $ref: '#/components/schemas/ApiFieldError'
+
+    ApiFieldError:
+      type: object
+      x-implements:
+        - java.io.Serializable
+      properties:
+        field:
+          type: string
+          description: Nombre del campo o ruta (ej. "items[0].quantity")
+        rejectedValue:
+          type: string
+        message:
+          type: string
+
+    PageMetadata:
+      type: object
+      properties:
+        page:
+          type: integer
+        size:
+          type: integer
+        totalElements:
+          type: integer
+          format: int64
+        totalPages:
+          type: integer
+
+    # ── CATEGORY ───────────────────────────────
+
+    Category:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+
+    CategoryRequest:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+          minLength: 2
+          maxLength: 100
+
+    # ── BRAND ──────────────────────────────────
+
+    Brand:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+
+    BrandRequest:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+          minLength: 2
+          maxLength: 100
+
+    # ── PRODUCT ────────────────────────────────
+
+    Product:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        sku:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        costPrice:
+          type: number
+          format: decimal
+          description: Precio de costo (para cálculo de margen)
+        price:
+          type: number
+          format: decimal
+          description: Precio de venta al público
+        currentStock:
+          type: integer
+        minStock:
+          type: integer
+        status:
+          $ref: '#/components/schemas/ProductStatus'
+        unit:
+          type: string
+          description: Unidad de medida (unidad, metro, kg, litro, etc.)
+        category:
+          $ref: '#/components/schemas/Category'
+        brand:
+          $ref: '#/components/schemas/Brand'
+        supplierId: { type: integer, format: int64 } # Solo el ID
+        version:
+          type: integer
+          format: int64
+          description: Versión usada para control de concurrencia optimista
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    ProductRequest:
+      type: object
+      required: [sku, name, price, costPrice, currentStock, minStock, categoryId, brandId, unit]
+      properties:
+        sku:
+          type: string
+          minLength: 1
+          maxLength: 50
+        name:
+          type: string
+          minLength: 2
+          maxLength: 200
+        description:
+          type: string
+          maxLength: 1000
+        costPrice:
+          type: number
+          format: decimal
+          minimum: 0
+        price:
+          type: number
+          format: decimal
+          minimum: 0
+        currentStock:
+          type: integer
+          minimum: 0
+        minStock:
+          type: integer
+          minimum: 0
+        unit:
+          type: string
+        categoryId:
+          type: integer
+          format: int64
+        brandId:
+          type: integer
+          format: int64
+        supplierId:
+          type: integer
+          format: int64
+
+    PriceUpdateRequest:
+      type: object
+      required: [price]
+      properties:
+        costPrice:
+          type: number
+          format: decimal
+          minimum: 0
+        price:
+          type: number
+          format: decimal
+          minimum: 0
+
+    PagedProduct:
+      type: object
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/Product'
+        metadata:
+          $ref: '#/components/schemas/PageMetadata'
+
