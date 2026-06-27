@@ -1,0 +1,8 @@
+extends: ["spectral:oas"]
+rules:
+  # Prohíbe que dos operaciones tengan el mismo ID (OBLIGATORIO)
+  operation-operationId: error
+  # Obliga a tener etiquetas (usamos 'operation-tags' en lugar de 'oas3-operation-tags')
+  operation-tags: warn
+  # Obliga a tener información de contacto
+  info-contact: error
